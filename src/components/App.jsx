@@ -46,34 +46,22 @@ const handleSubmit = e => {
   
   useEffect(() => {
     if (isLoading) {
-      const getPhotos = async () => {
-        try {
-          const data = await getImages(query, page);
-          if (!data.hits.length)
-            throw new Error(
-              'Sorry, there are no images matching your search query. Please try again.'
-            );
-          const imagesPage = findGalleryImage(data.hits);
-          setImages([...images, ...imagesPage]);
-          if (maxPage === 0)
-            setMaxPage(Math.ceil(data.totalHits / 12));
-        } catch (error) {
-          onError(error);
-        } finally {
-          setIsLoading({ isLoading: false });
+      getImages(query, page).then(
+        data => {
+          if (!data.hits.length) throw new Error(
+            'Sorry, there are no images matching your search query. Please try again.'
+          );
+          if (maxPage === 0) setMaxPage(Math.ceil(data.totalHits / 12));
+          return findGalleryImage(data.hits);
         }
-      };
-      getPhotos();
-    
-      if (isLoading) {
-        const prevImages = setImages.prevState;
-        if (images.length > 0 && prevImages.length !== images.length)
-          refElem.current.scrollIntoView({ behavior: 'smooth' });
-      }
+      ).then(imagesPage => setImages([...images, ...imagesPage])).catch(onError).finally(() => setIsLoading(false))
     }
-  },
-  [images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
+    if (images.length > 0) refElem.current.scrollIntoView({ behavior: 'smooth' })
+  },[images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
 
+          
+        
+         
 
   const loadBtn = () => {
     setPage(prevState => prevState + 1)
