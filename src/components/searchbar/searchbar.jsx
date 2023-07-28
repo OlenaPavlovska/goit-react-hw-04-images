@@ -1,29 +1,16 @@
-
-import {  useState } from 'react'
+import propTypes from 'prop-types'
 import css from './searchbar.module.css'
 
-export const Searchbar = () => {
-  const [query,setQuery]= useState('')
+export const Searchbar = ({query,onChange,onSubmit}) => {
+  
 
-  const handleChange = ({ target: { value, name } }) => {
-    setQuery({ [name]: value.trim() });
-  };
-
- const handleSubmit = e => {
-    e.preventDefault();
-    // this.props.onSubmit(this.state.query);
-    // this.setState({ query: '' });
-  }
-
-
-
-  return (
+return (
       <header className={css.searchbar}>
-        <form onSubmit={handleSubmit} className={css.form}>
+        <form onSubmit={onSubmit} className={css.form}>
           <input 
             name="query"
            className={css.input}
-            onChange={handleChange}
+            onChange={onChange}
             type="text"
             autocomplete="off"
             autofocus
@@ -38,43 +25,11 @@ export const Searchbar = () => {
     );
 }
 
+Searchbar.propTypes = {
+  querry: propTypes.string.isRequired,
+  onChange: propTypes.func.isRequired,
+  onSubmit: propTypes.func.isRequired
+}
 
 
 
-
-// export class Searchbar extends Component {
-//   state = {
-//     query: '',
-//   };
-  // handleChange = ({ target: { value, name } }) => {
-  //   this.setState({ [name]: value.trim() });
-  // };
-
-  // handleSubmit = e => {
-  //   e.preventDefault();
-
-  //   this.props.onSubmit(this.state.query);
-  //   this.setState({ query: '' });
-  // };
-  // // render() {
-//     return (
-//       <header className={css.searchbar}>
-//         <form onSubmit={this.handleSubmit} className={css.form}>
-//           <input 
-//             name="query"
-//            className={css.input}
-//             onChange={this.handleChange}
-//             type="text"
-//             autocomplete="off"
-//             autofocus
-//             value={this.state.query}
-//             placeholder="Search images and photos"
-//           />
-//           <button className={css.button} type="submit" >
-//             <span>Search</span>
-//           </button>
-//         </form>
-//       </header>
-//     );
-//   }
-// }

@@ -1,11 +1,11 @@
-import {  useEffect, useState } from "react";
+import {  useEffect, useRef, useState } from "react";
 import { Searchbar } from "./searchbar/searchbar";
 import {getImages} from '../service/api.js'
 import Notiflix from 'notiflix'; 
 import { ImageGallery } from './imageGallery/imageGallery'
 import React from 'react';
 import { Loaderbtn } from './button/button'
-// import { Loader } from "./loader/loader";
+import { Loader } from "./loader/loader";
 import { nanoid } from "nanoid";
 import { Modal } from './modal/modal'
 
@@ -16,28 +16,64 @@ export const App = () => {
   const [query, setQuery] = useState('')
   const [maxPage, setMaxPage] = useState(0)
   const [page, setPage] = useState(1)
-  const [refElem, setRefElem] = useState(React.createRef())
+  const refElem = useRef()
   const [isLoading, setIsLoading] = useState(false)
   const [showImage, setShowImage] = useState({ largeImageURL: "" })
   const [isShowModal, setIsShowModal] = useState(false)
-  const [refModal, setRefModal] = useState(React.createRef())
+  const refModal= useRef()
 
-  const handleChange = ({ target: { value, name } }) => {
-    setQuery({ [name]: value.trim() })
-  }
-  
-  const handleSubmit = e => {
-    setQuery(e)
-    if (!query.trim()) return Notiflix.Notify.failure(`Fill the search field`);
-    resetSearch()
-  };
 
-  const resetSearch = () => {
+
+
+  const handleChange = e=> setQuery(e.target.value)
+
+    const resetSearch = () => {
     setImages([])
     setPage(1)
     setMaxPage(0)
     setIsLoading(true)
   }
+
+const handleSubmit = e => {
+    e.preventDefault()
+    if (!query.trim()) return Notiflix.Notify.failure(`Fill the search field`);
+    resetSearch()
+  };
+
+ useEffect(() => {
+    if(isShowModal) refModal.current.focus()
+  }, [isShowModal])
+  
+  useEffect(() => {
+    if (isLoading) {
+      const getPhotos = async () => {
+        try {
+          const data = await getImages(query, page);
+          if (!data.hits.length)
+            throw new Error(
+              'Sorry, there are no images matching your search query. Please try again.'
+            );
+          const imagesPage = findGalleryImage(data.hits);
+          setImages([...images, ...imagesPage]);
+          if (maxPage === 0)
+            setMaxPage(Math.ceil(data.totalHits / 12));
+        } catch (error) {
+          onError(error);
+        } finally {
+          setIsLoading({ isLoading: false });
+        }
+      };
+      getPhotos();
+    
+      if (isLoading) {
+        const prevImages = setImages.prevState;
+        if (images.length > 0 && prevImages.length !== images.length)
+          refElem.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  },
+  [images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
+
 
   const loadBtn = () => {
     setPage(prevState => prevState + 1)
@@ -46,47 +82,17 @@ export const App = () => {
 
   const onError = err => Notiflix.Notify.failure(err.message)
 
-  useEffect(() => {
-    const getPhotos = async () => {
-      try {
-        const data = await getImages(query, page);
-        if (!data.hits.length)
-          throw new Error(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-        const imagesPage = findGalleryImage(data.hits);
-        setImages([...images, ...imagesPage]);
-        if (maxPage === 0)
-          setMaxPage(Math.ceil(data.totalHits / 12));
-      } catch (error) {
-        onError(error);
-      } finally {
-        setIsLoading({ isLoading: false });
-      }
-    };
-     getPhotos();
-    
-    if (isShowModal) refModal.current.focus();
-    if (isLoading) {
-      const prevImages = setImages.prevState;
-      if (images.length > 0 && prevImages.length !== images.length)
-        refElem.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  },
-    [images, isLoading, isShowModal, maxPage, page, query, refElem, refModal]
-  )
-
   const findGalleryImage = data => data.map(({ webformatURL, tags, largeImageURL }) => {
     return { id: nanoid(), webformatURL, tags, largeImageURL }
   })
 
-  const clickOnImage = ({ target: { dataset: { large }, alt } }) => {
+   const clickOnImage = ({ target: { dataset: { large }, alt } }) => {
     if (!large) return
     const imageFunction = { largeImageURL: large, tags: alt }
     setShowImage(imageFunction)
-    setIsShowModal(false)
+    setIsShowModal(true)
   }
-  
+
   const closeModal = () => setIsShowModal(false)
   
   const modalClick = (e) => {
@@ -97,13 +103,13 @@ export const App = () => {
     if (e.key === 'Escape') closeModal()
   }
 
-  return (
+ return (
     <div>
       <Searchbar query={query} onChange={handleChange} onSubmit={handleSubmit} />
 
       {images.length > 0 && <ImageGallery images={images} onClick={clickOnImage} ref={refElem} />}
 
-      {/* <Loader render={isLoading} /> */}
+      <Loader render={isLoading} />
 
       {page < maxPage && <Loaderbtn onClick={loadBtn} />}
 
