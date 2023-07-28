@@ -39,23 +39,37 @@ const handleSubmit = e => {
   };
 
  useEffect(() => {
-    if(isShowModal) refModal.current.focus()
+    if(isShowModal)refModal.current.focus()
   }, [isShowModal])
   
-  useEffect(() => {
-    if (isLoading) {
-      getImages(query, page).then(
-        data => {
-          if (!data.hits.length) throw new Error(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-          if (maxPage === 0) setMaxPage(Math.ceil(data.totalHits / 12));
-          return findGalleryImage(data.hits);
-        }
-      ).then(imagesPage => setImages([...images, ...imagesPage])).catch(onError).finally(() => setIsLoading(false))
-    }
-    if (images.length > 0) refElem.current.scrollIntoView({ behavior: 'smooth' })
-  },[images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
+ useEffect(() => {
+   const getPhotos = async () => {
+       try {
+         const data = await getImages(query, page);
+         if (!data.hits.length)
+           throw new Error(
+             'Sorry, there are no images matching your search query. Please try again.'
+           );
+         const imagesPage = findGalleryImage(data.hits);
+         setImages([...images, ...imagesPage]);
+         if (maxPage === 0)
+           setMaxPage(Math.ceil(data.totalHits / 12));
+       } catch (error) {
+         onError(error);
+       } finally {
+         setIsLoading({ isLoading: false });
+       }
+     };
+     getPhotos();
+
+     
+     if (isLoading) {
+       
+       if (images.length > 0 )
+         refElem.current.scrollIntoView({ behavior: 'smooth' });
+     }
+   
+      },[images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
 
           
         
@@ -110,7 +124,23 @@ const handleSubmit = e => {
 
 
 
+
+
+
+//  useEffect(() => {
+//     if(isShowModal)refModal.current.focus()
+//   }, [isShowModal])
   
-
-
-
+//   useEffect(() => {
+//     if (isLoading) {
+//       getImages(query, page).then(
+//         data => {
+//           if (!data.hits.length) throw new Error(
+//             'Sorry, there are no images matching your search query. Please try again.'
+//           );
+//           if (maxPage === 0) setMaxPage(Math.ceil(data.totalHits / 12));
+//           return findGalleryImage(data.hits);
+//         }).then(imagesPage => setImages([...images, ...imagesPage])).catch(onError).finally(() => setIsLoading(false))
+//     }
+//     if (images.length > 0) refElem.current.scrollIntoView({ behavior: 'smooth' })
+//   },[images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
