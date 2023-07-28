@@ -1,16 +1,20 @@
 import propTypes from 'prop-types'
 import css from './searchbar.module.css'
+import { useState } from 'react'
 
-export const Searchbar = ({query,onChange,onSubmit}) => {
-  
-
+export const Searchbar = ({onSubmit}) => {
+  const [query, setQuery] = useState('')
+  const handleSubmit = e => {
+    e.preventDefault()
+    onSubmit(query)
+  }
 return (
       <header className={css.searchbar}>
-        <form onSubmit={onSubmit} className={css.form}>
+        <form onSubmit={handleSubmit} className={css.form}>
           <input 
             name="query"
            className={css.input}
-            onChange={onChange}
+            onChange={e=>setQuery(e.target.value)}
             type="text"
             autocomplete="off"
             autofocus

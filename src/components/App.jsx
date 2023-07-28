@@ -34,7 +34,7 @@ const handleChange = e=> setQuery(e.target.value)
 
 const handleSubmit = e => {
     e.preventDefault()
-    if (!query.trim()) return Notiflix.Notify.failure(`Fill the search field`);
+    setQuery(e)
     resetSearch()
   };
 
@@ -42,7 +42,9 @@ const handleSubmit = e => {
     if(isShowModal)refModal.current.focus()
   }, [isShowModal])
   
- useEffect(() => {
+  useEffect(() => {
+    if (!query) return
+    setIsLoading(true)
    const getPhotos = async () => {
        try {
          const data = await getImages(query, page);
@@ -57,19 +59,12 @@ const handleSubmit = e => {
        } catch (error) {
          onError(error);
        } finally {
-         setIsLoading({ isLoading: false });
+         setIsLoading(false );
        }
      };
      getPhotos();
 
-     
-     if (isLoading) {
-       
-       if (images.length > 0 )
-         refElem.current.scrollIntoView({ behavior: 'smooth' });
-     }
-   
-      },[images, isLoading, isShowModal, maxPage, page, query, refElem, refModal])
+     }, [query, page, images, maxPage])
 
           
         
