@@ -14,7 +14,7 @@ import { Modal } from './modal/modal'
 export const App = () => {
   const [images, setImages] = useState([])
   const [query, setQuery] = useState('')
-  const [maxPage, setMaxPage] = useState(0)
+  const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const refElem = useRef()
   const [isLoading, setIsLoading] = useState(false)
@@ -28,12 +28,11 @@ export const App = () => {
     const resetSearch = () => {
     setImages([])
     setPage(1)
-    setMaxPage(0)
     setIsLoading(true)
   }
 
 const handleSubmit = e => {
-    e.preventDefault(setQuery(e))
+    setQuery(e)
     
     resetSearch()
   };
@@ -43,7 +42,7 @@ const handleSubmit = e => {
   }, [isShowModal])
   
   useEffect(() => {
-    if (!query || !page) return
+    if (!query) return
       
     setIsLoading(true)
     const getPhotos = async () => {
@@ -54,11 +53,10 @@ const handleSubmit = e => {
             'Sorry, there are no images matching your search query. Please try again.'
           );
        
-        
+        setTotal(data.totalHits)
         const imagesPage = findGalleryImage(data.hits);
-        setImages([...images, ...imagesPage]);
-        if (maxPage === 0)
-          setMaxPage(Math.ceil(data.totalHits / 12));
+        setImages(i=>[...i,...imagesPage]);
+       
       
          
       } catch (error) {
@@ -76,7 +74,7 @@ const handleSubmit = e => {
      
     
   }
-     , [query, page, images, maxPage, isShowModal, isLoading])
+     , [query, page])
 
           
         
@@ -84,7 +82,7 @@ const handleSubmit = e => {
 
   const loadBtn = () => {
     setPage(prev => prev + 1)
-    setIsLoading(true)
+    
   }
 
   const onError = err => Notiflix.Notify.failure(err.message)
@@ -118,7 +116,7 @@ const handleSubmit = e => {
 
       <Loader render={isLoading} />
 
-      {page < maxPage && <Loaderbtn onClick={loadBtn} />}
+      {images.length<total && <Loaderbtn onClick={loadBtn} />}
 
       {isShowModal && <Modal imageFunction={showImage} refModal={refModal} onClick={modalClick} onKeyDown={escCloseModal} />}
         
