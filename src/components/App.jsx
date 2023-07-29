@@ -23,7 +23,7 @@ export const App = () => {
   const refModal= useRef()
 
 
-const handleChange = e=> setQuery(e.target.value)
+// const handleChange = e=> setQuery(e.target.value)
 
     const resetSearch = () => {
     setImages([])
@@ -33,8 +33,8 @@ const handleChange = e=> setQuery(e.target.value)
   }
 
 const handleSubmit = e => {
-    e.preventDefault()
-    setQuery(e)
+    e.preventDefault(setQuery(e))
+    
     resetSearch()
   };
 
@@ -43,35 +43,47 @@ const handleSubmit = e => {
   }, [isShowModal])
   
   useEffect(() => {
-    if (!query) return
+    if (!query || !page) return
+      
     setIsLoading(true)
-   const getPhotos = async () => {
-       try {
-         const data = await getImages(query, page);
-         if (!data.hits.length)
-           throw new Error(
-             'Sorry, there are no images matching your search query. Please try again.'
-           );
-         const imagesPage = findGalleryImage(data.hits);
-         setImages([...images, ...imagesPage]);
-         if (maxPage === 0)
-           setMaxPage(Math.ceil(data.totalHits / 12));
-       } catch (error) {
-         onError(error);
-       } finally {
-         setIsLoading(false );
-       }
-     };
-     getPhotos();
-
-     }, [query, page, images, maxPage])
+    const getPhotos = async () => {
+      try {
+        const data = await getImages(query, page);
+        if (!data.hits.length)
+          throw new Error(
+            'Sorry, there are no images matching your search query. Please try again.'
+          );
+       
+        
+        const imagesPage = findGalleryImage(data.hits);
+        setImages([...images, ...imagesPage]);
+        if (maxPage === 0)
+          setMaxPage(Math.ceil(data.totalHits / 12));
+      
+         
+      } catch (error) {
+        onError(error);
+      } finally {
+        setIsLoading(false);
+      }
+      // if (images.length > 0 && prev.images.length !== images.length)
+      //   refElem.current.scrollIntoView({ behavior: 'smooth' }) 
+    };
+    
+    getPhotos();
+   
+    
+     
+    
+  }
+     , [query, page, images, maxPage, isShowModal, isLoading])
 
           
         
          
 
   const loadBtn = () => {
-    setPage(prevState => prevState + 1)
+    setPage(prev => prev + 1)
     setIsLoading(true)
   }
 
@@ -100,7 +112,7 @@ const handleSubmit = e => {
 
  return (
     <div>
-      <Searchbar query={query} onChange={handleChange} onSubmit={handleSubmit} />
+      <Searchbar query={query} onChange={e=> setQuery(e.target.value)} onSubmit={handleSubmit} />
 
       {images.length > 0 && <ImageGallery images={images} onClick={clickOnImage} ref={refElem} />}
 
